@@ -169,6 +169,12 @@ impl<'de> Deserialize<'de> for FileType {
             {
                 match map.next_entry::<String, String>()? {
                     Some((key, mut glob)) if key == "glob" => {
+                        // Rationale: The GNU stow command has a --dotfiles
+                        // flag which transforms "dot-%" -> ".%".
+                        if glob.starts_with('.') {
+                            glob = format!("{{{},dot-{}}}", &glob, &glob[1..]);
+                        }
+
                         // If the glob isn't an absolute path or already starts
                         // with a glob pattern, add a leading glob so we
                         // properly match relative paths.
